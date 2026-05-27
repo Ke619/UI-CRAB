@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(vbox), title, FALSE, FALSE, 0);
 
     /* Subtitle */
-    GtkWidget *subtitle = gtk_label_new("STEAMDECK · SYSTEM PATCH");
+    GtkWidget *subtitle = gtk_label_new("The Headcrab Approaches..");
     gtk_widget_set_name(subtitle, "subtitle");
     gtk_box_pack_start(GTK_BOX(vbox), subtitle, FALSE, FALSE, 0);
 
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
         "[ HEADCRAB UPDATER INITIALIZED ]\n[ PRESS UPDATE TO FETCH LATEST PATCH ]", -1);
 
     /* Footer */
-    GtkWidget *footer = gtk_label_new("github.com/Deadboy666/h3adcr-b");
+    GtkWidget *footer = gtk_link_button_new_with_label("https://github.com/Deadboy666/h3adcr-b", "github.com/Deadboy666/h3adcr-b");
     gtk_widget_set_name(footer, "footer");
     gtk_box_pack_start(GTK_BOX(vbox), footer, FALSE, FALSE, 0);
 
