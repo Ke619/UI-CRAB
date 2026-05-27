@@ -1,0 +1,49 @@
+name: Build AppImage
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc libgtk-3-dev pkg-config wget
+
+      - name: Compile
+        run: |
+          gcc headcrab_updater.c -o AppDir/usr/bin/headcrab_updater \
+            $(pkg-config --cflags --libs gtk+-3.0)
+          chmod +x AppDir/usr/bin/headcrab_updater
+          chmod +x AppDir/AppRun
+
+      - name: Download linuxdeploy + GTK plugin
+        run: |
+          wget -q "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage" -O linuxdeploy
+          wget -q "https://github.com/linuxdeploy/linuxdeploy-plugin-gtk/releases/download/continuous/linuxdeploy-plugin-gtk-x86_64.AppImage" -O linuxdeploy-plugin-gtk
+          chmod +x linuxdeploy linuxdeploy-plugin-gtk
+
+      - name: Build AppImage
+        run: |
+          export DEPLOY_GTK_VERSION=3
+          ./linuxdeploy \
+            --appdir AppDir \
+            --plugin gtk \
+            --output appimage \
+            --desktop-file AppDir/headcrab-updater.desktop \
+            --icon-file headcrab.png
+          mv Headcrab_Updater*.AppImage HeadcrabUpdater-x86_64.AppImage
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HeadcrabUpdater
+          path: HeadcrabUpdater-x86_64.AppImage
