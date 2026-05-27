@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
     /* CSS styling */
     GtkCssProvider *css = gtk_css_provider_new();
     gtk_css_provider_load_from_data(css,
-        "window { background-color: #0a0a0a; }"
+        "window { background-color: #000000; }"
         "#title { color: #cc2200; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
         "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
         "#run_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
