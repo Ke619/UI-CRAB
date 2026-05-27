@@ -16,6 +16,7 @@ Headcrab Updater is a lightweight desktop app for SteamOS/SteamDeck. Instead of 
 <br><br>
 **Download**
 <br>
+
 Head to the Head to the [Releases](https://github.com/Ke619/UI-CRAB/releases/latest) page and download `HeadcrabUpdater-x86_64.AppImage`.
  page and download HeadcrabUpdater-x86_64.AppImage.
 
