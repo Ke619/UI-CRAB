@@ -1,8 +1,12 @@
 #include <gtk/gtk.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+#include <sys/stat.h>
 
 #define SCRIPT_URL "https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.sh"
+#define CONFIG_DIR  "/.config/headcrab-updater"
+#define CONFIG_FILE "/.config/headcrab-updater/theme"
 
 typedef struct {
     GtkWidget *window;
@@ -50,6 +54,30 @@ static const char *CSS_BLUE =
     "#log { background-color: #1a6abf; color: #1a6abf; font-family: monospace; font-size: 12px; }"
     "#log text { background-color: #1a6abf; }"
     "#footer { color: #222222; font-size: 10px; }";
+
+/* Save theme to ~/.config/headcrab-updater/theme */
+static void save_theme(int theme) {
+    const char *home = g_get_home_dir();
+    char dir_path[512], file_path[512];
+    snprintf(dir_path,  sizeof(dir_path),  "%s%s", home, CONFIG_DIR);
+    snprintf(file_path, sizeof(file_path), "%s%s", home, CONFIG_FILE);
+    mkdir(dir_path, 0755);
+    FILE *f = fopen(file_path, "w");
+    if (f) { fprintf(f, "%d", theme); fclose(f); }
+}
+
+/* Load theme from ~/.config/headcrab-updater/theme */
+static int load_theme() {
+    const char *home = g_get_home_dir();
+    char file_path[512];
+    snprintf(file_path, sizeof(file_path), "%s%s", home, CONFIG_FILE);
+    FILE *f = fopen(file_path, "r");
+    if (!f) return 0; /* default red */
+    int theme = 0;
+    fscanf(f, "%d", &theme);
+    fclose(f);
+    return (theme == 1) ? 1 : 0;
+}
 
 static gboolean append_log(gpointer data) {
     char **args = (char **)data;
@@ -142,6 +170,7 @@ static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpoint
     AppWidgets *w = (AppWidgets *)data;
     w->current_theme = (w->current_theme == 0) ? 1 : 0;
     apply_theme(w);
+    save_theme(w->current_theme);
     return FALSE;
 }
 
@@ -149,7 +178,7 @@ int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
     AppWidgets *w = g_new0(AppWidgets, 1);
-    w->current_theme = 0;
+    w->current_theme = load_theme();
 
     char *dir = g_path_get_dirname(argv[0]);
     snprintf(w->icon_path_red,  sizeof(w->icon_path_red),  "%s/headcrab.png", dir);
@@ -163,7 +192,8 @@ int main(int argc, char *argv[]) {
         GTK_STYLE_PROVIDER(w->css_provider),
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
     );
-    gtk_css_provider_load_from_data(w->css_provider, CSS_RED, -1, NULL);
+    gtk_css_provider_load_from_data(w->css_provider,
+        (w->current_theme == 0) ? CSS_RED : CSS_BLUE, -1, NULL);
 
     /* Window */
     w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
@@ -183,7 +213,8 @@ int main(int argc, char *argv[]) {
     gtk_container_add(GTK_CONTAINER(w->window), vbox);
 
     /* Logo - wrapped in event box to capture clicks */
-    GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(w->icon_path_red, 110, 110, TRUE, NULL);
+    const char *initial_logo = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
+    GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(initial_logo, 110, 110, TRUE, NULL);
     w->logo_image = gtk_image_new_from_pixbuf(pb);
     gtk_widget_set_app_paintable(w->logo_image, TRUE);
     GtkWidget *event_box = gtk_event_box_new();
