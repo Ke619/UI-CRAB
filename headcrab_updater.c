@@ -40,7 +40,7 @@ static const char *CSS_RED =
 static const char *CSS_BLUE =
     "window { background-color: #E49427; }"
     "image { background-color: #E49427; }"
-    "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"https://github.com/Ke619/UI-CRAB/blob/Theme-toggle/headcrab_updater.c
+    "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #00060d; color: #1a6abf; border: 2px solid #1a6abf;"
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
