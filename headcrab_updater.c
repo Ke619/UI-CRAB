@@ -20,6 +20,7 @@ typedef struct {
 static const char *CSS_RED =
     "window { background-color: #000000; }"
     "image { background-color: #000000; }"
+    "#logo_box { background-color: transparent; }"
     "#title { color: #cc2200; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
@@ -36,6 +37,7 @@ static const char *CSS_RED =
 static const char *CSS_BLUE =
     "window { background-color: #E49427; }"
     "image { background-color: #E49427; }"
+    "#logo_box { background-color: transparent; }"
     "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #00060d; color: #1a6abf; border: 2px solid #1a6abf;"
@@ -180,13 +182,19 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_margin_bottom(vbox, 16);
     gtk_container_add(GTK_CONTAINER(w->window), vbox);
 
-    /* Logo - clickable to toggle theme */
+    /* Logo - wrapped in event box to capture clicks */
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(w->icon_path_red, 110, 110, TRUE, NULL);
     w->logo_image = gtk_image_new_from_pixbuf(pb);
     gtk_widget_set_app_paintable(w->logo_image, TRUE);
-    gtk_widget_add_events(w->logo_image, GDK_BUTTON_PRESS_MASK);
-    g_signal_connect(w->logo_image, "button-press-event", G_CALLBACK(on_logo_clicked), w);
-    gtk_box_pack_start(GTK_BOX(vbox), w->logo_image, FALSE, FALSE, 0);
+    GtkWidget *event_box = gtk_event_box_new();
+    gtk_widget_set_name(event_box, "logo_box");
+    gtk_container_add(GTK_CONTAINER(event_box), w->logo_image);
+    gtk_widget_add_events(event_box, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(event_box, "button-press-event", G_CALLBACK(on_logo_clicked), w);
+    GtkWidget *logo_center = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_halign(logo_center, GTK_ALIGN_CENTER);
+    gtk_box_pack_start(GTK_BOX(logo_center), event_box, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), logo_center, FALSE, FALSE, 0);
 
     /* Title */
     GtkWidget *title = gtk_label_new("HEADCRAB UPDATER");
