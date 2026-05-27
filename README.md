@@ -26,8 +26,8 @@ Head to the Head to the [Releases](https://github.com/Ke619/UI-CRAB/releases/lat
 
 
 <br>
-**<div align="center">
+<div align="center">
   Based on : https://github.com/Deadboy666/h3adcr-b
-</div>**
+</div>
 
 
