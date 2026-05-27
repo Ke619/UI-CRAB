@@ -1,4 +1,10 @@
+<div align="center">
+
+# Headcrab Updater (GUI)
+
+</div>
  # Headcrab Updater (GUI)
+
 <div align="center">
   <img src="headcrab.png" width="200"/>
 </div>
