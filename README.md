@@ -1,4 +1,4 @@
-# Headcrab Updater
+# Headcrab Updater (GUI)
 
 ![Project Logo](headcrab.png)
 
