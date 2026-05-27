@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Headcrab Updater
+Exec=headcrab_updater
+Icon=headcrab
+Type=Application
+Categories=Utility;
+Terminal=false
