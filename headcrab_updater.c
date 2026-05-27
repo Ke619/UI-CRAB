@@ -44,7 +44,7 @@ static const char *CSS_BLUE =
     "#logo_box { background-color: transparent; }"
     "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
-    "#run_btn { background: #00060d; color: #1a6abf; border: 2px solid #1a6abf;"
+    "#run_btn { background: #E49427; color: #1a6abf; border: 2px solid #1a6abf;"
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #001a33; color: #3399ff; }"
     "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
