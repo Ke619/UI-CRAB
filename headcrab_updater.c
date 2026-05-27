@@ -33,8 +33,8 @@ static const char *CSS_RED =
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #cc2200; font-size: 11px; letter-spacing: 2px; }"
-    "#log { background-color: #000000; color: #cc4422; font-family: monospace; font-size: 12px; }"
-    "#log text { background-color: #000000; }"
+    "#log { background-color: #cc2200; color: #cc4422; font-family: monospace; font-size: 12px; }"
+    "#log text { background-color: #cc2200; }"
     "#footer { color: #222222; font-size: 10px; }";
 
 static const char *CSS_BLUE =
@@ -52,8 +52,8 @@ static const char *CSS_BLUE =
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #1a6abf; font-size: 11px; letter-spacing: 2px; }"
-    "#log { background-color: #000000; color: #1a6abf; font-family: monospace; font-size: 12px; }"
-    "#log text { background-color: #000000; }"
+    "#log { background-color: #1a6abf; color: #1a6abf; font-family: monospace; font-size: 12px; }"
+    "#log text { background-color: #1a6abf; }"
     "#footer { color: #222222; font-size: 10px; }";
 
 static gboolean append_log(gpointer data) {
