@@ -1,6 +1,6 @@
 # Headcrab Updater
 
-![Uploading headcrab.png…]()
+![Project Logo](headcrab.png)
 
 One-click launcher for SteamOS/SteamDeck. Opens a GUI window, click **Update**, and it fetches + runs the latest Headcrab patch from GitHub.
 
