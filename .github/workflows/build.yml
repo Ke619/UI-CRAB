@@ -24,6 +24,7 @@ jobs:
             $(pkg-config --cflags --libs gtk+-3.0)
           chmod +x AppDir/usr/bin/headcrab_updater
           chmod +x AppDir/AppRun
+          cp headcrab_blue.png AppDir/usr/bin/headcrab_blue.png
 
       - name: Download appimagetool
         run: |
