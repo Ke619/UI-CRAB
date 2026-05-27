@@ -4,7 +4,7 @@
   <img src="headcrab.png" width="200"/>
 </div>
 
-One-click launcher for SteamOS/SteamDeck. Opens a GUI window, click **Update**, and it fetches + runs the latest Headcrab patch from GitHub.
+A one-click GUI launcher for SteamDeck that fetches and applies the latest Headcrab patch from GitHub.
 
 
 <div align="center">
