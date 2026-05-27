@@ -11,6 +11,7 @@
 typedef struct {
     GtkWidget *window;
     GtkWidget *btn;
+    GtkWidget *close_btn;
     GtkWidget *logo_image;
     GtkWidget *log_view;
     GtkTextBuffer *log_buf;
@@ -31,6 +32,10 @@ static const char *CSS_RED =
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #1a0000; color: #ff3300; }"
     "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
+    "#close_btn { background: transparent; color: #cc2200; border: none;"
+    "  font-size: 18px; font-weight: bold; padding: 0 8px; min-width: 0; min-height: 0; }"
+    "#close_btn:hover { color: #ff3300; }"
+    "#topbar { background-color: #000000; }"
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #cc2200; font-size: 11px; letter-spacing: 2px; }"
@@ -49,6 +54,10 @@ static const char *CSS_BLUE =
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #c07d1a; color: #3399ff; }"
     "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
+    "#close_btn { background: transparent; color: #1a6abf; border: none;"
+    "  font-size: 18px; font-weight: bold; padding: 0 8px; min-width: 0; min-height: 0; }"
+    "#close_btn:hover { color: #3399ff; }"
+    "#topbar { background-color: #E49427; }"
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #1a6abf; font-size: 11px; letter-spacing: 2px; }"
@@ -57,7 +66,6 @@ static const char *CSS_BLUE =
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#footer { color: #222222; font-size: 10px; }";
 
-/* Save theme to ~/.config/headcrab-updater/theme */
 static void save_theme(int theme) {
     const char *home = g_get_home_dir();
     char dir_path[512], file_path[512];
@@ -68,13 +76,12 @@ static void save_theme(int theme) {
     if (f) { fprintf(f, "%d", theme); fclose(f); }
 }
 
-/* Load theme from ~/.config/headcrab-updater/theme */
 static int load_theme() {
     const char *home = g_get_home_dir();
     char file_path[512];
     snprintf(file_path, sizeof(file_path), "%s%s", home, CONFIG_FILE);
     FILE *f = fopen(file_path, "r");
-    if (!f) return 0; /* default red */
+    if (!f) return 0;
     int theme = 0;
     fscanf(f, "%d", &theme);
     fclose(f);
@@ -176,6 +183,14 @@ static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpoint
     return FALSE;
 }
 
+static gboolean on_topbar_drag(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    if (event->button == 1)
+        gtk_window_begin_move_drag(GTK_WINDOW(w->window),
+            event->button, event->x_root, event->y_root, event->time);
+    return FALSE;
+}
+
 int main(int argc, char *argv[]) {
     gtk_init(&argc, &argv);
 
@@ -197,22 +212,41 @@ int main(int argc, char *argv[]) {
     gtk_css_provider_load_from_data(w->css_provider,
         (w->current_theme == 0) ? CSS_RED : CSS_BLUE, -1, NULL);
 
-    /* Window */
+    /* Window - no titlebar */
     w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(w->window), "Headcrab Updater");
     gtk_window_set_default_size(GTK_WINDOW(w->window), 500, 540);
     gtk_window_set_resizable(GTK_WINDOW(w->window), FALSE);
+    gtk_window_set_decorated(GTK_WINDOW(w->window), FALSE);
     gtk_container_set_border_width(GTK_CONTAINER(w->window), 0);
     gtk_window_set_icon_from_file(GTK_WINDOW(w->window), w->icon_path_red, NULL);
     g_signal_connect(w->window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
     /* Main box */
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
-    gtk_widget_set_margin_start(vbox, 24);
-    gtk_widget_set_margin_end(vbox, 24);
-    gtk_widget_set_margin_top(vbox, 20);
     gtk_widget_set_margin_bottom(vbox, 16);
     gtk_container_add(GTK_CONTAINER(w->window), vbox);
+
+    /* Custom topbar with X button */
+    GtkWidget *topbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_name(topbar, "topbar");
+    gtk_widget_add_events(topbar, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(topbar, "button-press-event", G_CALLBACK(on_topbar_drag), w);
+    GtkWidget *spacer = gtk_label_new("");
+    gtk_widget_set_hexpand(spacer, TRUE);
+    gtk_box_pack_start(GTK_BOX(topbar), spacer, TRUE, TRUE, 0);
+    w->close_btn = gtk_button_new_with_label("✕");
+    gtk_widget_set_name(w->close_btn, "close_btn");
+    g_signal_connect(w->close_btn, "clicked", G_CALLBACK(gtk_main_quit), NULL);
+    gtk_box_pack_end(GTK_BOX(topbar), w->close_btn, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), topbar, FALSE, FALSE, 0);
+
+    /* Content box with padding */
+    GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
+    gtk_widget_set_margin_start(content, 24);
+    gtk_widget_set_margin_end(content, 24);
+    gtk_widget_set_margin_bottom(content, 16);
+    gtk_box_pack_start(GTK_BOX(vbox), content, TRUE, TRUE, 0);
 
     /* Logo - wrapped in event box to capture clicks */
     const char *initial_logo = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
@@ -227,17 +261,17 @@ int main(int argc, char *argv[]) {
     GtkWidget *logo_center = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_halign(logo_center, GTK_ALIGN_CENTER);
     gtk_box_pack_start(GTK_BOX(logo_center), event_box, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), logo_center, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(content), logo_center, FALSE, FALSE, 0);
 
     /* Title */
     GtkWidget *title = gtk_label_new("HEADCRAB UPDATER");
     gtk_widget_set_name(title, "title");
-    gtk_box_pack_start(GTK_BOX(vbox), title, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(content), title, FALSE, FALSE, 0);
 
     /* Subtitle */
     GtkWidget *subtitle = gtk_label_new("The Headcrab Approaches..");
     gtk_widget_set_name(subtitle, "subtitle");
-    gtk_box_pack_start(GTK_BOX(vbox), subtitle, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(content), subtitle, FALSE, FALSE, 0);
 
     /* Update button */
     w->btn = gtk_button_new_with_label("▶   UPDATE");
@@ -246,13 +280,13 @@ int main(int argc, char *argv[]) {
     GtkWidget *btn_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_halign(btn_box, GTK_ALIGN_CENTER);
     gtk_box_pack_start(GTK_BOX(btn_box), w->btn, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), btn_box, FALSE, FALSE, 6);
+    gtk_box_pack_start(GTK_BOX(content), btn_box, FALSE, FALSE, 6);
     g_signal_connect(w->btn, "clicked", G_CALLBACK(on_update_clicked), w);
 
     /* Status */
     w->status_label = gtk_label_new("READY");
     gtk_widget_set_name(w->status_label, "status");
-    gtk_box_pack_start(GTK_BOX(vbox), w->status_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(content), w->status_label, FALSE, FALSE, 0);
 
     /* Log */
     GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
@@ -266,7 +300,7 @@ int main(int argc, char *argv[]) {
     gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(w->log_view), FALSE);
     gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(w->log_view), GTK_WRAP_WORD_CHAR);
     gtk_container_add(GTK_CONTAINER(scroll), w->log_view);
-    gtk_box_pack_start(GTK_BOX(vbox), scroll, TRUE, TRUE, 0);
+    gtk_box_pack_start(GTK_BOX(content), scroll, TRUE, TRUE, 0);
 
     GtkTextIter end;
     gtk_text_buffer_get_end_iter(w->log_buf, &end);
@@ -278,7 +312,7 @@ int main(int argc, char *argv[]) {
     gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
     gtk_label_set_track_visited_links(GTK_LABEL(footer), FALSE);
     gtk_widget_set_name(footer, "footer");
-    gtk_box_pack_start(GTK_BOX(vbox), footer, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(content), footer, FALSE, FALSE, 0);
 
     gtk_widget_show_all(w->window);
     gtk_main();
