@@ -1,3 +1,6 @@
+<div align="center">
+  # Headcrab Updater (GUI)
+</div>
 # Headcrab Updater (GUI)
 <div align="center">
   A one-click GUI launcher for SteamDeck that fetches and applies the latest Headcrab patch from GitHub.
