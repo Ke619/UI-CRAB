@@ -19,30 +19,36 @@ typedef struct {
     GtkTextBuffer *log_buf;
     GtkWidget *status_label;
     GtkCssProvider *css_provider;
+    GtkWidget *outer_frame;
     int current_theme; /* 0 = red, 1 = blue */
     char icon_path_red[512];
     char icon_path_blue[512];
 } AppWidgets;
 
 static const char *CSS_RED =
-    "window { background-color: #000000; }"
+    "window { background-color: #cc2200; }"
     "image { background-color: #000000; }"
     "#logo_box { background-color: transparent; }"
+    "#outer_frame { background-color: #000000; margin: 3px; }"
     "#title { color: #cc2200; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #1a0000; color: #ff3300; }"
+    "#run_btn:active { background-color: #330000; color: #ff3300; }"
     "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
     "#trouble_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
     "  font-size: 13px; font-weight: bold; letter-spacing: 2px; padding: 8px 20px; border-radius: 0; }"
     "#trouble_btn:hover { background-color: #1a0000; color: #ff3300; }"
+    "#trouble_btn:active { background-color: #330000; color: #ff3300; }"
     "#sub_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
     "  font-size: 13px; font-weight: bold; letter-spacing: 2px; padding: 8px 20px; border-radius: 0; }"
     "#sub_btn:hover { background-color: #1a0000; color: #ff3300; }"
+    "#sub_btn:active { background-color: #330000; color: #ff3300; }"
     "#close_btn { background: transparent; color: #cc2200; border: none;"
     "  font-size: 18px; font-weight: bold; padding: 0 8px; min-width: 0; min-height: 0; }"
     "#close_btn:hover { color: #ff3300; }"
+    "#close_btn:active { color: #880000; }"
     "#topbar { background-color: #000000; }"
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
@@ -53,24 +59,29 @@ static const char *CSS_RED =
     "#footer { color: #222222; font-size: 10px; }";
 
 static const char *CSS_BLUE =
-    "window { background-color: #E49427; }"
+    "window { background-color: #1a6abf; }"
     "image { background-color: #E49427; }"
     "#logo_box { background-color: transparent; }"
+    "#outer_frame { background-color: #E49427; margin: 3px; }"
     "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #E49427; color: #1a6abf; border: 2px solid #1a6abf;"
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
-    "#run_btn:hover { background-color: #c07d1a; color: #3399ff; }"
-    "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
+    "#run_btn:hover { background-color: #c07d1a; color: #003d80; }"
+    "#run_btn:active { background-color: #a06010; color: #003d80; }"
+    "#run_btn:disabled { background-color: #c0a060; color: #888; border-color: #888; }"
     "#trouble_btn { background: #E49427; color: #1a6abf; border: 2px solid #1a6abf;"
     "  font-size: 13px; font-weight: bold; letter-spacing: 2px; padding: 8px 20px; border-radius: 0; }"
-    "#trouble_btn:hover { background-color: #c07d1a; color: #3399ff; }"
+    "#trouble_btn:hover { background-color: #c07d1a; color: #003d80; }"
+    "#trouble_btn:active { background-color: #a06010; color: #003d80; }"
     "#sub_btn { background: #E49427; color: #1a6abf; border: 2px solid #1a6abf;"
     "  font-size: 13px; font-weight: bold; letter-spacing: 2px; padding: 8px 20px; border-radius: 0; }"
-    "#sub_btn:hover { background-color: #c07d1a; color: #3399ff; }"
+    "#sub_btn:hover { background-color: #c07d1a; color: #003d80; }"
+    "#sub_btn:active { background-color: #a06010; color: #003d80; }"
     "#close_btn { background: transparent; color: #1a6abf; border: none;"
     "  font-size: 18px; font-weight: bold; padding: 0 8px; min-width: 0; min-height: 0; }"
     "#close_btn:hover { color: #3399ff; }"
+    "#close_btn:active { color: #0d3d80; }"
     "#topbar { background-color: #E49427; }"
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
@@ -221,16 +232,20 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
 
     GtkWidget *twin = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(twin), "SLS Troubleshooting");
-    gtk_window_set_default_size(GTK_WINDOW(twin), 380, 280);
+    gtk_window_set_default_size(GTK_WINDOW(twin), 380, 300);
     gtk_window_set_resizable(GTK_WINDOW(twin), FALSE);
     gtk_window_set_decorated(GTK_WINDOW(twin), FALSE);
     gtk_window_set_transient_for(GTK_WINDOW(twin), GTK_WINDOW(w->window));
     gtk_window_set_position(GTK_WINDOW(twin), GTK_WIN_POS_CENTER);
 
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
-    gtk_container_add(GTK_CONTAINER(twin), vbox);
+    /* Outer frame for border effect */
+    GtkWidget *outer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_name(outer, "outer_frame");
+    gtk_container_add(GTK_CONTAINER(twin), outer);
 
-    /* Topbar with close */
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_container_add(GTK_CONTAINER(outer), vbox);
+
     GtkWidget *topbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_name(topbar, "topbar");
     GtkWidget *spacer = gtk_label_new("");
@@ -242,7 +257,6 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     gtk_box_pack_end(GTK_BOX(topbar), close, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), topbar, FALSE, FALSE, 0);
 
-    /* Content */
     GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 12);
     gtk_widget_set_margin_start(content, 40);
     gtk_widget_set_margin_end(content, 40);
@@ -272,7 +286,7 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     gtk_box_pack_start(GTK_BOX(content), row2, FALSE, FALSE, 0);
     g_signal_connect_swapped(btn_steam, "clicked", G_CALLBACK(run_cmd), "steam");
 
-    GtkWidget *btn_repatch = gtk_button_new_with_label("Repatch");
+    GtkWidget *btn_repatch = gtk_button_new_with_label("Repatch Steam");
     gtk_widget_set_name(btn_repatch, "sub_btn");
     gtk_widget_set_size_request(btn_repatch, 260, 44);
     GtkWidget *row3 = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -313,9 +327,14 @@ int main(int argc, char *argv[]) {
     gtk_window_set_icon_from_file(GTK_WINDOW(w->window), w->icon_path_red, NULL);
     g_signal_connect(w->window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
+    /* Outer frame for border effect */
+    w->outer_frame = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
+    gtk_widget_set_name(w->outer_frame, "outer_frame");
+    gtk_container_add(GTK_CONTAINER(w->window), w->outer_frame);
+
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     gtk_widget_set_margin_bottom(vbox, 16);
-    gtk_container_add(GTK_CONTAINER(w->window), vbox);
+    gtk_container_add(GTK_CONTAINER(w->outer_frame), vbox);
 
     GtkWidget *topbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_name(topbar, "topbar");
@@ -367,7 +386,7 @@ int main(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(content), btn_box, FALSE, FALSE, 6);
     g_signal_connect(w->btn, "clicked", G_CALLBACK(on_update_clicked), w);
 
-    GtkWidget *trouble_btn = gtk_button_new_with_label("SLS Troubleshooting");
+    GtkWidget *trouble_btn = gtk_button_new_with_label("TROUBLESHOOT SLS");
     gtk_widget_set_name(trouble_btn, "trouble_btn");
     gtk_widget_set_size_request(trouble_btn, 220, 40);
     GtkWidget *trouble_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
