@@ -7,7 +7,6 @@
 typedef struct {
     GtkWidget *window;
     GtkWidget *btn;
-    GtkWidget *theme_btn;
     GtkWidget *logo_image;
     GtkWidget *log_view;
     GtkTextBuffer *log_buf;
@@ -27,9 +26,6 @@ static const char *CSS_RED =
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #1a0000; color: #ff3300; }"
     "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
-    "#theme_btn { background: #0d0000; color: #cc2200; border: 1px solid #cc2200;"
-    "  font-size: 11px; letter-spacing: 2px; padding: 4px 12px; border-radius: 0; }"
-    "#theme_btn:hover { background-color: #1a0000; color: #ff3300; }"
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #cc2200; font-size: 11px; letter-spacing: 2px; }"
@@ -46,9 +42,6 @@ static const char *CSS_BLUE =
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #001a33; color: #3399ff; }"
     "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
-    "#theme_btn { background: #00060d; color: #1a6abf; border: 1px solid #1a6abf;"
-    "  font-size: 11px; letter-spacing: 2px; padding: 4px 12px; border-radius: 0; }"
-    "#theme_btn:hover { background-color: #001a33; color: #3399ff; }"
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #1a6abf; font-size: 11px; letter-spacing: 2px; }"
@@ -141,14 +134,13 @@ static void apply_theme(AppWidgets *w) {
     const char *logo_path = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(logo_path, 110, 110, TRUE, NULL);
     if (pb) gtk_image_set_from_pixbuf(GTK_IMAGE(w->logo_image), pb);
-    gtk_button_set_label(GTK_BUTTON(w->theme_btn),
-        (w->current_theme == 0) ? "⬡  BLUE THEME" : "⬡  RED THEME");
 }
 
-static void on_theme_clicked(GtkWidget *btn, gpointer data) {
+static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     AppWidgets *w = (AppWidgets *)data;
     w->current_theme = (w->current_theme == 0) ? 1 : 0;
     apply_theme(w);
+    return FALSE;
 }
 
 int main(int argc, char *argv[]) {
@@ -188,10 +180,12 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_margin_bottom(vbox, 16);
     gtk_container_add(GTK_CONTAINER(w->window), vbox);
 
-    /* Logo */
+    /* Logo - clickable to toggle theme */
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(w->icon_path_red, 110, 110, TRUE, NULL);
     w->logo_image = gtk_image_new_from_pixbuf(pb);
     gtk_widget_set_app_paintable(w->logo_image, TRUE);
+    gtk_widget_add_events(w->logo_image, GDK_BUTTON_PRESS_MASK);
+    g_signal_connect(w->logo_image, "button-press-event", G_CALLBACK(on_logo_clicked), w);
     gtk_box_pack_start(GTK_BOX(vbox), w->logo_image, FALSE, FALSE, 0);
 
     /* Title */
@@ -203,15 +197,6 @@ int main(int argc, char *argv[]) {
     GtkWidget *subtitle = gtk_label_new("The Headcrab Approaches..");
     gtk_widget_set_name(subtitle, "subtitle");
     gtk_box_pack_start(GTK_BOX(vbox), subtitle, FALSE, FALSE, 0);
-
-    /* Theme toggle */
-    GtkWidget *theme_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
-    gtk_widget_set_halign(theme_box, GTK_ALIGN_CENTER);
-    w->theme_btn = gtk_button_new_with_label("⬡  BLUE THEME");
-    gtk_widget_set_name(w->theme_btn, "theme_btn");
-    gtk_box_pack_start(GTK_BOX(theme_box), w->theme_btn, FALSE, FALSE, 0);
-    gtk_box_pack_start(GTK_BOX(vbox), theme_box, FALSE, FALSE, 4);
-    g_signal_connect(w->theme_btn, "clicked", G_CALLBACK(on_theme_clicked), w);
 
     /* Update button */
     w->btn = gtk_button_new_with_label("▶   UPDATE");
