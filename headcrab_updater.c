@@ -36,6 +36,7 @@ static const char *CSS_RED =
     "#status_error { color: #cc2200; font-size: 11px; letter-spacing: 2px; }"
     "#log { background-color: #cc2200; color: #cc4422; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
     "#log text { background-color: #cc2200; }"
+    "scrolledwindow { border: 2px solid #ffffff; }"
     "#footer { color: #222222; font-size: 10px; }";
 
 static const char *CSS_BLUE =
@@ -53,6 +54,7 @@ static const char *CSS_BLUE =
     "#status_error { color: #1a6abf; font-size: 11px; letter-spacing: 2px; }"
     "#log { background-color: #1a6abf; color: #1a6abf; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
     "#log text { background-color: #1a6abf; }"
+    "scrolledwindow { border: 2px solid #ffffff; }"
     "#footer { color: #222222; font-size: 10px; }";
 
 /* Save theme to ~/.config/headcrab-updater/theme */
