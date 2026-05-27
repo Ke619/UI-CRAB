@@ -204,8 +204,7 @@ int main(int argc, char *argv[]) {
         "[ HEADCRAB UPDATER INITIALIZED ]\n[ PRESS UPDATE TO FETCH LATEST PATCH ]", -1);
 
     /* Footer */
-    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#ffffff\" size=\"small\">github.com/Deadboy666/h3adcr-b</span></a>");
-    gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
+    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#cc2200\" size=\"medium\" underline=\"none\">github.com/Deadboy666/h3adcr-b</span></a>");    gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
     gtk_label_set_track_visited_links(GTK_LABEL(footer), FALSE);
     gtk_widget_set_name(footer, "footer");
     gtk_box_pack_start(GTK_BOX(vbox), footer, FALSE, FALSE, 0);
