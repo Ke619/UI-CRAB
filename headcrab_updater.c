@@ -34,12 +34,13 @@ static const char *CSS_RED =
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #cc2200; font-size: 11px; letter-spacing: 2px; }"
     "#log { background-color: #000000; color: #cc4422; font-family: monospace; font-size: 12px; }"
+    "#log text { background-color: #000000; }"
     "#footer { color: #222222; font-size: 10px; }";
 
 static const char *CSS_BLUE =
     "window { background-color: #E49427; }"
     "image { background-color: #E49427; }"
-    "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
+    "#title { color: #1a6abf; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"https://github.com/Ke619/UI-CRAB/blob/Theme-toggle/headcrab_updater.c
     "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #00060d; color: #1a6abf; border: 2px solid #1a6abf;"
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
@@ -51,7 +52,8 @@ static const char *CSS_BLUE =
     "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
     "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
     "#status_error { color: #1a6abf; font-size: 11px; letter-spacing: 2px; }"
-    "#log { background-color: #1a6abf; color: #1a6abf; font-family: monospace; font-size: 12px; }"
+    "#log { background-color: #000000; color: #1a6abf; font-family: monospace; font-size: 12px; }"
+    "#log text { background-color: #000000; }"
     "#footer { color: #222222; font-size: 10px; }";
 
 static gboolean append_log(gpointer data) {
