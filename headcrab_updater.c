@@ -70,7 +70,7 @@ static const char *CSS_RED =
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#note { color: #aaaaaa; font-size: 10px; font-style: italic; }"
     "#footer { color: #aaaaaa; font-size: 10px; }"
-    "#dim_layer { background-color: rgba(0,0,0,0.55); }"
+    "#dim_layer { background-color: rgba(0,0,0,0.75); }"
     "#outer_frame.dimmed { filter: grayscale(100%); }";
 
 static const char *CSS_BLUE =
@@ -106,7 +106,7 @@ static const char *CSS_BLUE =
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#note { color: #444444; font-size: 10px; font-style: italic; }"
     "#footer { color: #444444; font-size: 10px; }"
-    "#dim_layer { background-color: rgba(0,0,0,0.55); }"
+    "#dim_layer { background-color: rgba(0,0,0,0.75); }"
     "#outer_frame.dimmed { filter: grayscale(100%); }";
 
 static void save_theme(int theme) {
