@@ -27,12 +27,13 @@ typedef struct {
     GtkWidget *dim_layer;
     GtkWidget *footer_red;
     GtkWidget *footer_blue;
+    GtkWidget *footer_dark;
     GstElement *music_player;
     GstElement *sfx_click;
     GstElement *sfx_hover;
     int music_playing;
     guint hold_timer;
-    int current_theme; /* 0 = red, 1 = blue */
+    int current_theme; /* 0 = red, 1 = blue, 2 = dark */
     char icon_path_red[512];
     char icon_path_blue[512];
 } AppWidgets;
@@ -109,6 +110,42 @@ static const char *CSS_BLUE =
     "#dim_layer { background-color: rgba(0,0,0,0.75); }"
     "#outer_frame.dimmed { filter: grayscale(100%); }";
 
+static const char *CSS_DARK =
+    "window { background-color: #cc2200; }"
+    "image { background-color: #000000; }"
+    "#logo_box { background-color: transparent; }"
+    "#outer_frame { background-color: #000000; margin: 3px; }"
+    "#title { color: #cc2200; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
+    "#subtitle { color: #aaaaaa; font-size: 10px; letter-spacing: 5px; }"
+    "#run_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
+    "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
+    "#run_btn:hover { background-color: #1a0000; color: #ff3300; }"
+    "#run_btn:active { background-color: #330000; color: #ff3300; }"
+    "#run_btn:disabled { background-color: #0d0d0d; color: #333; border-color: #333; }"
+    "#trouble_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
+    "  font-size: 13px; font-weight: bold; letter-spacing: 2px; padding: 8px 20px; border-radius: 0; }"
+    "#trouble_btn:hover { background-color: #1a0000; color: #ff3300; }"
+    "#trouble_btn:active { background-color: #330000; color: #ff3300; }"
+    "#sub_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
+    "  font-size: 13px; font-weight: bold; letter-spacing: 2px; padding: 8px 20px; border-radius: 0; }"
+    "#sub_btn:hover { background-color: #1a0000; color: #ff3300; }"
+    "#sub_btn:active { background-color: #330000; color: #ff3300; }"
+    "#close_btn { background: transparent; color: #cc2200; border: none;"
+    "  font-size: 18px; font-weight: bold; padding: 0 8px; min-width: 0; min-height: 0; }"
+    "#close_btn:hover { color: #ff3300; }"
+    "#close_btn:active { color: #880000; }"
+    "#topbar { background-color: #000000; }"
+    "#status { color: #cc2200; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#status_done { color: #228822; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#status_error { color: #ff3300; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#log { background-color: #000000; color: #cc2200; font-family: monospace; font-size: 12px; }"
+    "#log text { background-color: #000000; }"
+    "scrolledwindow { }"
+    "#note { color: #aaaaaa; font-size: 10px; font-style: italic; }"
+    "#footer { color: #aaaaaa; font-size: 10px; }"
+    "#dim_layer { background-color: rgba(0,0,0,0.75); }"
+    "#outer_frame.dimmed { filter: grayscale(100%); }";
+
 static void save_theme(int theme) {
     const char *home = g_get_home_dir();
     char dir_path[512], file_path[512];
@@ -124,11 +161,13 @@ static int load_theme() {
     char file_path[512];
     snprintf(file_path, sizeof(file_path), "%s%s", home, CONFIG_FILE);
     FILE *f = fopen(file_path, "r");
-    if (!f) return 0;
+    if (!f) return 2;
     int theme = 0;
     fscanf(f, "%d", &theme);
     fclose(f);
-    return (theme == 1) ? 1 : 0;
+    if (theme == 1) return 1;
+    if (theme == 2) return 2;
+    return 0;
 }
 
 static void save_music(int playing) {
@@ -310,19 +349,18 @@ static void on_update_clicked(GtkWidget *btn, gpointer data) {
 }
 
 static void apply_theme(AppWidgets *w) {
-    const char *css = (w->current_theme == 0) ? CSS_RED : CSS_BLUE;
+    const char *css = (w->current_theme == 0) ? CSS_RED : (w->current_theme == 1) ? CSS_BLUE : CSS_DARK;
     gtk_css_provider_load_from_data(w->css_provider, css, -1, NULL);
-    const char *logo_path = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
+    const char *logo_path = (w->current_theme == 1) ? w->icon_path_blue : w->icon_path_red;
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(logo_path, 110, 110, TRUE, NULL);
     if (pb) gtk_image_set_from_pixbuf(GTK_IMAGE(w->logo_image), pb);
-    if (w->footer_red && w->footer_blue) {
-        if (w->current_theme == 0) {
-            gtk_widget_show(w->footer_red);
-            gtk_widget_hide(w->footer_blue);
-        } else {
-            gtk_widget_hide(w->footer_red);
-            gtk_widget_show(w->footer_blue);
-        }
+    if (w->footer_red && w->footer_blue && w->footer_dark) {
+        gtk_widget_hide(w->footer_red);
+        gtk_widget_hide(w->footer_blue);
+        gtk_widget_hide(w->footer_dark);
+        if (w->current_theme == 0) gtk_widget_show(w->footer_red);
+        else if (w->current_theme == 1) gtk_widget_show(w->footer_blue);
+        else gtk_widget_show(w->footer_dark);
     }
 }
 
@@ -346,7 +384,7 @@ static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpoint
     if (click_count >= 5) {
         click_count = 0;
         first_click_time = 0;
-        w->current_theme = (w->current_theme == 0) ? 1 : 0;
+        w->current_theme = (w->current_theme + 1) % 3;
         apply_theme(w);
         save_theme(w->current_theme);
     }
@@ -502,7 +540,7 @@ int main(int argc, char *argv[]) {
         GTK_STYLE_PROVIDER_PRIORITY_APPLICATION
     );
     gtk_css_provider_load_from_data(w->css_provider,
-        (w->current_theme == 0) ? CSS_RED : CSS_BLUE, -1, NULL);
+        (w->current_theme == 0) ? CSS_RED : (w->current_theme == 1) ? CSS_BLUE : CSS_DARK, -1, NULL);
 
     w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(w->window), "Headcrab Updater");
@@ -550,7 +588,7 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_margin_top(content, 4);
     gtk_box_pack_start(GTK_BOX(vbox), content, TRUE, TRUE, 0);
 
-    const char *initial_logo = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
+    const char *initial_logo = (w->current_theme == 1) ? w->icon_path_blue : w->icon_path_red;
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(initial_logo, 110, 110, TRUE, NULL);
     w->logo_image = gtk_image_new_from_pixbuf(pb);
     gtk_widget_set_app_paintable(w->logo_image, TRUE);
@@ -649,12 +687,24 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_name(w->footer_blue, "footer");
     gtk_box_pack_start(GTK_BOX(footer_box), w->footer_blue, FALSE, FALSE, 0);
 
-    /* Hide the correct footer based on saved theme */
-    if (w->current_theme == 1) {
-        gtk_widget_set_no_show_all(w->footer_red, TRUE);
-    } else {
-        gtk_widget_set_no_show_all(w->footer_blue, TRUE);
-    }
+    w->footer_dark = gtk_label_new(
+        "<a href='https://github.com/Deadboy666/h3adcr-b'>"
+        "<span foreground='#aaaaaa' size='medium' underline='none'>h3adcr-b</span></a>"
+        " ❖ "
+        "<a href='https://github.com/Ke619/UI-CRAB'>"
+        "<span foreground='#aaaaaa' size='medium' underline='none'>UI-CRAB</span></a>");
+    gtk_label_set_use_markup(GTK_LABEL(w->footer_dark), TRUE);
+    gtk_label_set_track_visited_links(GTK_LABEL(w->footer_dark), FALSE);
+    gtk_widget_set_name(w->footer_dark, "footer");
+    gtk_box_pack_start(GTK_BOX(footer_box), w->footer_dark, FALSE, FALSE, 0);
+
+    /* Hide all footers, show only the correct one */
+    gtk_widget_set_no_show_all(w->footer_red, TRUE);
+    gtk_widget_set_no_show_all(w->footer_blue, TRUE);
+    gtk_widget_set_no_show_all(w->footer_dark, TRUE);
+    if (w->current_theme == 0) gtk_widget_set_no_show_all(w->footer_red, FALSE);
+    else if (w->current_theme == 1) gtk_widget_set_no_show_all(w->footer_blue, FALSE);
+    else gtk_widget_set_no_show_all(w->footer_dark, FALSE);
 
     gtk_box_pack_start(GTK_BOX(vbox), footer_box, FALSE, FALSE, 0);
 
