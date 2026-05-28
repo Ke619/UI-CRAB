@@ -32,7 +32,7 @@ static const char *CSS_RED =
     "#logo_box { background-color: transparent; }"
     "#outer_frame { background-color: #000000; margin: 3px; }"
     "#title { color: #cc2200; font-size: 24px; font-weight: bold; letter-spacing: 4px; }"
-    "#subtitle { color: #444444; font-size: 10px; letter-spacing: 5px; }"
+    "#subtitle { color: #aaaaaa; font-size: 10px; letter-spacing: 5px; }"
     "#run_btn { background: #0d0000; color: #cc2200; border: 2px solid #cc2200;"
     "  font-size: 15px; font-weight: bold; letter-spacing: 3px; padding: 10px 40px; border-radius: 0; }"
     "#run_btn:hover { background-color: #1a0000; color: #ff3300; }"
@@ -57,8 +57,8 @@ static const char *CSS_RED =
     "#log { background-color: #cc2200; color: #000000; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
     "#log text { background-color: #cc2200; }"
     "scrolledwindow { border: 2px solid #ffffff; }"
-    "#note { color: #888888; font-size: 10px; font-style: italic; }"
-    "#footer { color: #444444; font-size: 10px; }";
+    "#note { color: #aaaaaa; font-size: 10px; font-style: italic; }"
+    "#footer { color: #aaaaaa; font-size: 10px; }";
 
 static const char *CSS_BLUE =
     "window { background-color: #1a6abf; }"
@@ -91,7 +91,7 @@ static const char *CSS_BLUE =
     "#log { background-color: #1a6abf; color: #ffffff; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
     "#log text { background-color: #1a6abf; }"
     "scrolledwindow { border: 2px solid #ffffff; }"
-    "#note { color: #555555; font-size: 10px; font-style: italic; }"
+    "#note { color: #444444; font-size: 10px; font-style: italic; }"
     "#footer { color: #444444; font-size: 10px; }";
 
 static void save_theme(int theme) {
@@ -431,22 +431,19 @@ int main(int argc, char *argv[]) {
     gtk_text_buffer_insert(w->log_buf, &end,
         "[ HEADCRAB UPDATER INITIALIZED ]\n[ PRESS UPDATE TO FETCH LATEST PATCH ]", -1);
 
-    /* Status below the log */
     w->status_label = gtk_label_new("READY");
     gtk_widget_set_name(w->status_label, "status");
     gtk_label_set_xalign(GTK_LABEL(w->status_label), 0.5);
     gtk_box_pack_start(GTK_BOX(content), w->status_label, FALSE, FALSE, 4);
 
-    /* Filler to push footer to bottom */
     GtkWidget *filler = gtk_label_new("");
     gtk_widget_set_vexpand(filler, TRUE);
     gtk_box_pack_start(GTK_BOX(vbox), filler, TRUE, TRUE, 0);
 
-    /* Footer pinned to bottom */
     GtkWidget *footer_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_halign(footer_box, GTK_ALIGN_CENTER);
     gtk_widget_set_margin_bottom(footer_box, 10);
-    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#444444\" size=\"medium\" underline=\"none\">github.com/Deadboy666/h3adcr-b</span></a>");
+    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#aaaaaa\" size=\"medium\" underline=\"none\">github.com/Deadboy666/h3adcr-b</span></a>");
     gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
     gtk_label_set_track_visited_links(GTK_LABEL(footer), FALSE);
     gtk_widget_set_name(footer, "footer");
