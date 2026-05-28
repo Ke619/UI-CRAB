@@ -23,6 +23,8 @@ typedef struct {
     GtkWidget *status_label;
     GtkCssProvider *css_provider;
     GtkWidget *outer_frame;
+    GtkWidget *overlay;
+    GtkWidget *dim_layer;
     GtkWidget *footer_red;
     GtkWidget *footer_blue;
     GstElement *music_player;
@@ -67,7 +69,8 @@ static const char *CSS_RED =
     "#log text { background-color: #cc2200; }"
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#note { color: #aaaaaa; font-size: 10px; font-style: italic; }"
-    "#footer { color: #aaaaaa; font-size: 10px; }";
+    "#footer { color: #aaaaaa; font-size: 10px; }"
+    "#dim_layer { background-color: rgba(0,0,0,0.55); }";
 
 static const char *CSS_BLUE =
     "window { background-color: #1a6abf; }"
@@ -101,7 +104,8 @@ static const char *CSS_BLUE =
     "#log text { background-color: #1a6abf; }"
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#note { color: #444444; font-size: 10px; font-style: italic; }"
-    "#footer { color: #444444; font-size: 10px; }";
+    "#footer { color: #444444; font-size: 10px; }"
+    "#dim_layer { background-color: rgba(0,0,0,0.55); }";
 
 static void save_theme(int theme) {
     const char *home = g_get_home_dir();
@@ -387,6 +391,8 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     GtkWidget *close = gtk_button_new_with_label("✕");
     gtk_widget_set_name(close, "close_btn");
     g_signal_connect_swapped(close, "clicked", G_CALLBACK(gtk_widget_destroy), twin);
+    g_signal_connect(close, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(close, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
     gtk_box_pack_end(GTK_BOX(topbar), close, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), topbar, FALSE, FALSE, 0);
 
@@ -401,9 +407,6 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     gtk_widget_set_name(title, "title");
     gtk_box_pack_start(GTK_BOX(content), title, FALSE, FALSE, 0);
 
-    GtkWidget *note = gtk_label_new("Do these steps in order from top to bottom.");
-    gtk_widget_set_name(note, "note");
-    gtk_box_pack_start(GTK_BOX(content), note, FALSE, FALSE, 0);
 
     GtkWidget *btn_reset = gtk_button_new_with_label("Reset Steam");
     gtk_widget_set_name(btn_reset, "sub_btn");
@@ -413,6 +416,8 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     gtk_box_pack_start(GTK_BOX(row1), btn_reset, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(content), row1, FALSE, FALSE, 0);
     g_signal_connect_swapped(btn_reset, "clicked", G_CALLBACK(run_cmd), RESET_URL);
+    g_signal_connect(btn_reset, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(btn_reset, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
 
     GtkWidget *btn_steam = gtk_button_new_with_label("Open Steam");
     gtk_widget_set_name(btn_steam, "sub_btn");
@@ -422,6 +427,8 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     gtk_box_pack_start(GTK_BOX(row2), btn_steam, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(content), row2, FALSE, FALSE, 0);
     g_signal_connect_swapped(btn_steam, "clicked", G_CALLBACK(run_cmd), "steam");
+    g_signal_connect(btn_steam, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(btn_steam, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
 
     GtkWidget *btn_repatch = gtk_button_new_with_label("Repatch Steam");
     gtk_widget_set_name(btn_repatch, "sub_btn");
@@ -431,7 +438,11 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     gtk_box_pack_start(GTK_BOX(row3), btn_repatch, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(content), row3, FALSE, FALSE, 0);
     g_signal_connect_swapped(btn_repatch, "clicked", G_CALLBACK(run_cmd), REPATCH_URL);
+    g_signal_connect(btn_repatch, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(btn_repatch, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
 
+    gtk_widget_show(w->dim_layer);
+    g_signal_connect_swapped(twin, "destroy", G_CALLBACK(gtk_widget_hide), w->dim_layer);
     gtk_widget_show_all(twin);
 }
 
@@ -495,7 +506,16 @@ int main(int argc, char *argv[]) {
 
     w->outer_frame = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_name(w->outer_frame, "outer_frame");
-    gtk_container_add(GTK_CONTAINER(w->window), w->outer_frame);
+
+    /* Overlay for dim effect */
+    w->overlay = gtk_overlay_new();
+    gtk_container_add(GTK_CONTAINER(w->window), w->overlay);
+    gtk_container_add(GTK_CONTAINER(w->overlay), w->outer_frame);
+
+    w->dim_layer = gtk_event_box_new();
+    gtk_widget_set_name(w->dim_layer, "dim_layer");
+    gtk_widget_set_no_show_all(w->dim_layer, TRUE);
+    gtk_overlay_add_overlay(GTK_OVERLAY(w->overlay), w->dim_layer);
 
     GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(w->outer_frame), vbox);
