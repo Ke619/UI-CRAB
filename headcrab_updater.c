@@ -210,7 +210,7 @@ static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpoint
 
     time_t now = time(NULL);
 
-    if (click_count > 0 && difftime(now, first_click_time) > 5.0) {
+    if (click_count > 0 && difftime(now, first_click_time) > 3.0) {
         click_count = 0;
         first_click_time = 0;
     }
