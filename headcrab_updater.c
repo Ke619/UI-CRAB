@@ -70,7 +70,8 @@ static const char *CSS_RED =
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#note { color: #aaaaaa; font-size: 10px; font-style: italic; }"
     "#footer { color: #aaaaaa; font-size: 10px; }"
-    "#dim_layer { background-color: rgba(0,0,0,0.55); }";
+    "#dim_layer { background-color: rgba(0,0,0,0.55); }"
+    "#outer_frame.dimmed { filter: grayscale(100%); }";
 
 static const char *CSS_BLUE =
     "window { background-color: #1a6abf; }"
@@ -105,7 +106,8 @@ static const char *CSS_BLUE =
     "scrolledwindow { border: 2px solid #ffffff; }"
     "#note { color: #444444; font-size: 10px; font-style: italic; }"
     "#footer { color: #444444; font-size: 10px; }"
-    "#dim_layer { background-color: rgba(0,0,0,0.55); }";
+    "#dim_layer { background-color: rgba(0,0,0,0.55); }"
+    "#outer_frame.dimmed { filter: grayscale(100%); }";
 
 static void save_theme(int theme) {
     const char *home = g_get_home_dir();
@@ -365,6 +367,11 @@ static void run_cmd(const char *cmd) {
     system(full);
 }
 
+static void on_troubleshoot_closed(GtkWidget *widget, gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    gtk_style_context_remove_class(gtk_widget_get_style_context(w->outer_frame), "dimmed");
+}
+
 static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     AppWidgets *w = (AppWidgets *)data;
 
@@ -442,7 +449,9 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     g_signal_connect(btn_repatch, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
 
     gtk_widget_show(w->dim_layer);
+    gtk_style_context_add_class(gtk_widget_get_style_context(w->outer_frame), "dimmed");
     g_signal_connect_swapped(twin, "destroy", G_CALLBACK(gtk_widget_hide), w->dim_layer);
+    g_signal_connect(twin, "destroy", G_CALLBACK(on_troubleshoot_closed), w);
     gtk_widget_show_all(twin);
 }
 
