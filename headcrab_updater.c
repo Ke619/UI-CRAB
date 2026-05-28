@@ -443,7 +443,7 @@ int main(int argc, char *argv[]) {
     GtkWidget *footer_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_halign(footer_box, GTK_ALIGN_CENTER);
     gtk_widget_set_margin_bottom(footer_box, 10);
-    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#aaaaaa\" size=\"medium\" underline=\"none\">github.com/Deadboy666/h3adcr-b</span></a>");
+    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#aaaaaa\" size=\"medium\" underline=\"none\">h3adcr-b</span></a> ❖ <a href=\"https://github.com/Ke619/UI-CRAB\"><span foreground=\"#aaaaaa\" size=\"medium\" underline=\"none\">UI-CRAB</span></a>");
     gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
     gtk_label_set_track_visited_links(GTK_LABEL(footer), FALSE);
     gtk_widget_set_name(footer, "footer");
