@@ -4,12 +4,14 @@
 #include <stdio.h>
 #include <sys/stat.h>
 #include <time.h>
+#include <gst/gst.h>
 
 #define SCRIPT_URL  "https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.sh"
 #define RESET_URL   "curl -fsSL headcrab.pages.dev/reset | bash"
 #define REPATCH_URL "curl -fsSL headcrab.pages.dev | bash"
 #define CONFIG_DIR  "/.config/headcrab-updater"
 #define CONFIG_FILE "/.config/headcrab-updater/theme"
+#define MUSIC_FILE  "/.config/headcrab-updater/music"
 
 typedef struct {
     GtkWidget *window;
@@ -23,6 +25,9 @@ typedef struct {
     GtkWidget *outer_frame;
     GtkWidget *footer_red;
     GtkWidget *footer_blue;
+    GstElement *music_player;
+    int music_playing;
+    guint hold_timer;
     int current_theme; /* 0 = red, 1 = blue */
     char icon_path_red[512];
     char icon_path_blue[512];
@@ -116,6 +121,86 @@ static int load_theme() {
     fscanf(f, "%d", &theme);
     fclose(f);
     return (theme == 1) ? 1 : 0;
+}
+
+static void save_music(int playing) {
+    const char *home = g_get_home_dir();
+    char dir_path[512], file_path[512];
+    snprintf(dir_path,  sizeof(dir_path),  "%s%s", home, CONFIG_DIR);
+    snprintf(file_path, sizeof(file_path), "%s%s", home, MUSIC_FILE);
+    mkdir(dir_path, 0755);
+    FILE *f = fopen(file_path, "w");
+    if (f) { fprintf(f, "%d", playing); fclose(f); }
+}
+
+static int load_music() {
+    const char *home = g_get_home_dir();
+    char file_path[512];
+    snprintf(file_path, sizeof(file_path), "%s%s", home, MUSIC_FILE);
+    FILE *f = fopen(file_path, "r");
+    if (!f) return 0;
+    int playing = 0;
+    fscanf(f, "%d", &playing);
+    fclose(f);
+    return (playing == 1) ? 1 : 0;
+}
+
+static gboolean on_music_bus(GstBus *bus, GstMessage *msg, gpointer data) {
+    GstElement *player = (GstElement *)data;
+    if (GST_MESSAGE_TYPE(msg) == GST_MESSAGE_EOS) {
+        gst_element_seek_simple(player, GST_FORMAT_TIME,
+            GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 0);
+    }
+    return TRUE;
+}
+
+static void start_music(AppWidgets *w) {
+    if (!w->music_player) return;
+    GstBus *bus = gst_element_get_bus(w->music_player);
+    gst_bus_add_watch(bus, on_music_bus, w->music_player);
+    gst_object_unref(bus);
+    gst_element_set_state(w->music_player, GST_STATE_PLAYING);
+    w->music_playing = 1;
+    save_music(1);
+}
+
+static void stop_music(AppWidgets *w) {
+    if (!w->music_player) return;
+    gst_element_set_state(w->music_player, GST_STATE_NULL);
+    w->music_playing = 0;
+    save_music(0);
+}
+
+static void toggle_music(AppWidgets *w) {
+    if (w->music_playing)
+        stop_music(w);
+    else
+        start_music(w);
+}
+
+static gboolean on_hold_timeout(gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    w->hold_timer = 0;
+    toggle_music(w);
+    return G_SOURCE_REMOVE;
+}
+
+static gboolean on_logo_press(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    if (event->button == 1) {
+        if (w->hold_timer) g_source_remove(w->hold_timer);
+        w->hold_timer = g_timeout_add(3000, on_hold_timeout, w);
+    }
+    return FALSE;
+}
+
+static gboolean on_logo_release(GtkWidget *widget, GdkEventButton *event, gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    if (event->button == 1 && w->hold_timer) {
+        g_source_remove(w->hold_timer);
+        w->hold_timer = 0;
+    }
+    return FALSE;
 }
 
 static gboolean append_log(gpointer data) {
@@ -330,15 +415,27 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
 }
 
 int main(int argc, char *argv[]) {
+    gst_init(&argc, &argv);
     gtk_init(&argc, &argv);
 
     AppWidgets *w = g_new0(AppWidgets, 1);
     w->current_theme = load_theme();
+    w->music_playing = 0;
+    w->hold_timer = 0;
 
     char *dir = g_path_get_dirname(argv[0]);
     snprintf(w->icon_path_red,  sizeof(w->icon_path_red),  "%s/headcrab.png", dir);
     snprintf(w->icon_path_blue, sizeof(w->icon_path_blue), "%s/headcrab_blue.png", dir);
+
+    /* Setup looping music player */
+    char bgm_uri[512];
+    snprintf(bgm_uri, sizeof(bgm_uri), "file://%s/BGM.wav", dir);
     g_free(dir);
+
+    w->music_player = gst_element_factory_make("playbin", "music");
+    if (w->music_player) {
+        g_object_set(w->music_player, "uri", bgm_uri, NULL);
+    }
 
     w->css_provider = gtk_css_provider_new();
     gtk_style_context_add_provider_for_screen(
@@ -391,8 +488,10 @@ int main(int argc, char *argv[]) {
     GtkWidget *event_box = gtk_event_box_new();
     gtk_widget_set_name(event_box, "logo_box");
     gtk_container_add(GTK_CONTAINER(event_box), w->logo_image);
-    gtk_widget_add_events(event_box, GDK_BUTTON_PRESS_MASK);
+    gtk_widget_add_events(event_box, GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK);
     g_signal_connect(event_box, "button-press-event", G_CALLBACK(on_logo_clicked), w);
+    g_signal_connect(event_box, "button-press-event", G_CALLBACK(on_logo_press), w);
+    g_signal_connect(event_box, "button-release-event", G_CALLBACK(on_logo_release), w);
     GtkWidget *logo_center = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_halign(logo_center, GTK_ALIGN_CENTER);
     gtk_box_pack_start(GTK_BOX(logo_center), event_box, FALSE, FALSE, 0);
@@ -486,8 +585,19 @@ int main(int argc, char *argv[]) {
 
     gtk_box_pack_start(GTK_BOX(vbox), footer_box, FALSE, FALSE, 0);
 
-        gtk_widget_show_all(w->window);
+    gtk_widget_show_all(w->window);
+
+    /* Auto-play music if it was playing on last close */
+    if (load_music() && w->music_player)
+        start_music(w);
+
     gtk_main();
+
+    /* Cleanup music on exit */
+    if (w->music_player) {
+        gst_element_set_state(w->music_player, GST_STATE_NULL);
+        gst_object_unref(w->music_player);
+    }
 
     g_free(w);
     return 0;
