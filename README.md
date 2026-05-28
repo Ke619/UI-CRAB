@@ -23,7 +23,8 @@ Head to the [Releases](https://github.com/Ke619/UI-CRAB/releases/latest) page an
 <div align="center">
   <img src="Demo.png" width="400"/>
 </div>
-### BGM:
+
+### Background Music:
 Hold the logo for 3 seconds to toggle the background music on or off. The music will loop continuously and your preference is saved — if you had it playing when you closed the app, it will automatically resume on next launch.
 <br><br>
 <br>
