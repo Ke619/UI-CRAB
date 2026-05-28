@@ -26,6 +26,8 @@ typedef struct {
     GtkWidget *footer_red;
     GtkWidget *footer_blue;
     GstElement *music_player;
+    GstElement *sfx_click;
+    GstElement *sfx_hover;
     int music_playing;
     guint hold_timer;
     int current_theme; /* 0 = red, 1 = blue */
@@ -152,6 +154,24 @@ static gboolean on_music_bus(GstBus *bus, GstMessage *msg, gpointer data) {
             GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 0);
     }
     return TRUE;
+}
+
+static void play_sfx(GstElement *sfx) {
+    if (!sfx) return;
+    gst_element_set_state(sfx, GST_STATE_NULL);
+    gst_element_set_state(sfx, GST_STATE_PLAYING);
+}
+
+static gboolean on_btn_enter(GtkWidget *widget, GdkEvent *event, gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    play_sfx(w->sfx_hover);
+    return FALSE;
+}
+
+static gboolean on_btn_click(GtkWidget *widget, GdkEvent *event, gpointer data) {
+    AppWidgets *w = (AppWidgets *)data;
+    play_sfx(w->sfx_click);
+    return FALSE;
 }
 
 static void start_music(AppWidgets *w) {
@@ -430,12 +450,23 @@ int main(int argc, char *argv[]) {
     /* Setup looping music player */
     char bgm_uri[512];
     snprintf(bgm_uri, sizeof(bgm_uri), "file://%s/BGM.wav", dir);
-    g_free(dir);
 
     w->music_player = gst_element_factory_make("playbin", "music");
     if (w->music_player) {
         g_object_set(w->music_player, "uri", bgm_uri, NULL);
     }
+
+    /* Setup click and hover sound effects */
+    char click_uri[512], hover_uri[512];
+    snprintf(click_uri, sizeof(click_uri), "file://%s/Click.mp3", dir);
+    snprintf(hover_uri, sizeof(hover_uri), "file://%s/Hover.mp3", dir);
+
+    w->sfx_click = gst_element_factory_make("playbin", "sfx_click");
+    if (w->sfx_click) g_object_set(w->sfx_click, "uri", click_uri, NULL);
+
+    w->sfx_hover = gst_element_factory_make("playbin", "sfx_hover");
+    if (w->sfx_hover) g_object_set(w->sfx_hover, "uri", hover_uri, NULL);
+    g_free(dir);
 
     w->css_provider = gtk_css_provider_new();
     gtk_style_context_add_provider_for_screen(
@@ -472,6 +503,8 @@ int main(int argc, char *argv[]) {
     w->close_btn = gtk_button_new_with_label("✕");
     gtk_widget_set_name(w->close_btn, "close_btn");
     g_signal_connect(w->close_btn, "clicked", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(w->close_btn, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(w->close_btn, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
     gtk_box_pack_end(GTK_BOX(topbar), w->close_btn, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(vbox), topbar, FALSE, FALSE, 0);
 
@@ -513,6 +546,8 @@ int main(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(btn_box), w->btn, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(content), btn_box, FALSE, FALSE, 6);
     g_signal_connect(w->btn, "clicked", G_CALLBACK(on_update_clicked), w);
+    g_signal_connect(w->btn, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(w->btn, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
 
     GtkWidget *trouble_btn = gtk_button_new_with_label("TROUBLESHOOT SLS");
     gtk_widget_set_name(trouble_btn, "trouble_btn");
@@ -522,6 +557,8 @@ int main(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(trouble_box), trouble_btn, FALSE, FALSE, 0);
     gtk_box_pack_start(GTK_BOX(content), trouble_box, FALSE, FALSE, 0);
     g_signal_connect(trouble_btn, "clicked", G_CALLBACK(open_troubleshoot), w);
+    g_signal_connect(trouble_btn, "clicked", G_CALLBACK(on_btn_click), w);
+    g_signal_connect(trouble_btn, "enter-notify-event", G_CALLBACK(on_btn_enter), w);
 
     GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
@@ -597,6 +634,14 @@ int main(int argc, char *argv[]) {
     if (w->music_player) {
         gst_element_set_state(w->music_player, GST_STATE_NULL);
         gst_object_unref(w->music_player);
+    }
+    if (w->sfx_click) {
+        gst_element_set_state(w->sfx_click, GST_STATE_NULL);
+        gst_object_unref(w->sfx_click);
+    }
+    if (w->sfx_hover) {
+        gst_element_set_state(w->sfx_hover, GST_STATE_NULL);
+        gst_object_unref(w->sfx_hover);
     }
 
     g_free(w);
