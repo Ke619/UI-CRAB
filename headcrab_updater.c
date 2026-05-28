@@ -162,16 +162,15 @@ static void play_sfx(GstElement *sfx) {
     gst_element_set_state(sfx, GST_STATE_PLAYING);
 }
 
-static gboolean on_btn_enter(GtkWidget *widget, GdkEvent *event, gpointer data) {
+static gboolean on_btn_enter(GtkWidget *widget, GdkEventCrossing *event, gpointer data) {
     AppWidgets *w = (AppWidgets *)data;
     play_sfx(w->sfx_hover);
     return FALSE;
 }
 
-static gboolean on_btn_click(GtkWidget *widget, GdkEvent *event, gpointer data) {
+static void on_btn_click(GtkWidget *widget, gpointer data) {
     AppWidgets *w = (AppWidgets *)data;
     play_sfx(w->sfx_click);
-    return FALSE;
 }
 
 static void start_music(AppWidgets *w) {
