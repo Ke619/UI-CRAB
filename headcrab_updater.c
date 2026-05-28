@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #define SCRIPT_URL  "https://raw.githubusercontent.com/Deadboy666/h3adcr-b/refs/heads/main/headcrab.sh"
 #define RESET_URL   "curl -fsSL headcrab.pages.dev/reset | bash"
@@ -50,13 +51,14 @@ static const char *CSS_RED =
     "#close_btn:hover { color: #ff3300; }"
     "#close_btn:active { color: #880000; }"
     "#topbar { background-color: #000000; }"
-    "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
-    "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
-    "#status_error { color: #cc2200; font-size: 11px; letter-spacing: 2px; }"
-    "#log { background-color: #cc2200; color: #cc4422; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
+    "#status { color: #cc2200; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#status_done { color: #228822; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#status_error { color: #ff3300; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#log { background-color: #cc2200; color: #000000; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
     "#log text { background-color: #cc2200; }"
     "scrolledwindow { border: 2px solid #ffffff; }"
-    "#footer { color: #222222; font-size: 10px; }";
+    "#note { color: #888888; font-size: 10px; font-style: italic; }"
+    "#footer { color: #444444; font-size: 10px; }";
 
 static const char *CSS_BLUE =
     "window { background-color: #1a6abf; }"
@@ -83,13 +85,14 @@ static const char *CSS_BLUE =
     "#close_btn:hover { color: #3399ff; }"
     "#close_btn:active { color: #0d3d80; }"
     "#topbar { background-color: #E49427; }"
-    "#status { color: #444; font-size: 11px; letter-spacing: 2px; }"
-    "#status_done { color: #228822; font-size: 11px; letter-spacing: 2px; }"
-    "#status_error { color: #1a6abf; font-size: 11px; letter-spacing: 2px; }"
-    "#log { background-color: #1a6abf; color: #1a6abf; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
+    "#status { color: #1a6abf; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#status_done { color: #228822; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#status_error { color: #cc0000; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
+    "#log { background-color: #1a6abf; color: #ffffff; font-family: monospace; font-size: 12px; border: 2px solid #ffffff; }"
     "#log text { background-color: #1a6abf; }"
     "scrolledwindow { border: 2px solid #ffffff; }"
-    "#footer { color: #222222; font-size: 10px; }";
+    "#note { color: #555555; font-size: 10px; font-style: italic; }"
+    "#footer { color: #444444; font-size: 10px; }";
 
 static void save_theme(int theme) {
     const char *home = g_get_home_dir();
@@ -203,9 +206,23 @@ static void apply_theme(AppWidgets *w) {
 static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data) {
     AppWidgets *w = (AppWidgets *)data;
     static int click_count = 0;
+    static time_t first_click_time = 0;
+
+    time_t now = time(NULL);
+
+    if (click_count > 0 && difftime(now, first_click_time) > 5.0) {
+        click_count = 0;
+        first_click_time = 0;
+    }
+
+    if (click_count == 0)
+        first_click_time = now;
+
     click_count++;
+
     if (click_count >= 5) {
         click_count = 0;
+        first_click_time = 0;
         w->current_theme = (w->current_theme == 0) ? 1 : 0;
         apply_theme(w);
         save_theme(w->current_theme);
@@ -232,13 +249,12 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
 
     GtkWidget *twin = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(twin), "SLS Troubleshooting");
-    gtk_window_set_default_size(GTK_WINDOW(twin), 380, 300);
+    gtk_window_set_default_size(GTK_WINDOW(twin), 380, 330);
     gtk_window_set_resizable(GTK_WINDOW(twin), FALSE);
     gtk_window_set_decorated(GTK_WINDOW(twin), FALSE);
     gtk_window_set_transient_for(GTK_WINDOW(twin), GTK_WINDOW(w->window));
     gtk_window_set_position(GTK_WINDOW(twin), GTK_WIN_POS_CENTER);
 
-    /* Outer frame for border effect */
     GtkWidget *outer = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_name(outer, "outer_frame");
     gtk_container_add(GTK_CONTAINER(twin), outer);
@@ -267,6 +283,10 @@ static void open_troubleshoot(GtkWidget *btn, gpointer data) {
     GtkWidget *title = gtk_label_new("SLS TROUBLESHOOTING");
     gtk_widget_set_name(title, "title");
     gtk_box_pack_start(GTK_BOX(content), title, FALSE, FALSE, 0);
+
+    GtkWidget *note = gtk_label_new("Do these steps in order from top to bottom.");
+    gtk_widget_set_name(note, "note");
+    gtk_box_pack_start(GTK_BOX(content), note, FALSE, FALSE, 0);
 
     GtkWidget *btn_reset = gtk_button_new_with_label("Reset Steam");
     gtk_widget_set_name(btn_reset, "sub_btn");
@@ -320,20 +340,18 @@ int main(int argc, char *argv[]) {
 
     w->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(w->window), "Headcrab Updater");
-    gtk_window_set_default_size(GTK_WINDOW(w->window), 500, 540);
+    gtk_window_set_default_size(GTK_WINDOW(w->window), 500, 560);
     gtk_window_set_resizable(GTK_WINDOW(w->window), FALSE);
     gtk_window_set_decorated(GTK_WINDOW(w->window), FALSE);
     gtk_container_set_border_width(GTK_CONTAINER(w->window), 0);
     gtk_window_set_icon_from_file(GTK_WINDOW(w->window), w->icon_path_red, NULL);
     g_signal_connect(w->window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
 
-    /* Outer frame for border effect */
     w->outer_frame = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_widget_set_name(w->outer_frame, "outer_frame");
     gtk_container_add(GTK_CONTAINER(w->window), w->outer_frame);
 
-    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
-    gtk_widget_set_margin_bottom(vbox, 16);
+    GtkWidget *vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
     gtk_container_add(GTK_CONTAINER(w->outer_frame), vbox);
 
     GtkWidget *topbar = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
@@ -352,7 +370,7 @@ int main(int argc, char *argv[]) {
     GtkWidget *content = gtk_box_new(GTK_ORIENTATION_VERTICAL, 8);
     gtk_widget_set_margin_start(content, 24);
     gtk_widget_set_margin_end(content, 24);
-    gtk_widget_set_margin_bottom(content, 16);
+    gtk_widget_set_margin_top(content, 4);
     gtk_box_pack_start(GTK_BOX(vbox), content, TRUE, TRUE, 0);
 
     const char *initial_logo = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
@@ -395,10 +413,6 @@ int main(int argc, char *argv[]) {
     gtk_box_pack_start(GTK_BOX(content), trouble_box, FALSE, FALSE, 0);
     g_signal_connect(trouble_btn, "clicked", G_CALLBACK(open_troubleshoot), w);
 
-    w->status_label = gtk_label_new("READY");
-    gtk_widget_set_name(w->status_label, "status");
-    gtk_box_pack_start(GTK_BOX(content), w->status_label, FALSE, FALSE, 0);
-
     GtkWidget *scroll = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(scroll),
         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
@@ -417,11 +431,27 @@ int main(int argc, char *argv[]) {
     gtk_text_buffer_insert(w->log_buf, &end,
         "[ HEADCRAB UPDATER INITIALIZED ]\n[ PRESS UPDATE TO FETCH LATEST PATCH ]", -1);
 
+    /* Status below the log */
+    w->status_label = gtk_label_new("READY");
+    gtk_widget_set_name(w->status_label, "status");
+    gtk_label_set_xalign(GTK_LABEL(w->status_label), 0.5);
+    gtk_box_pack_start(GTK_BOX(content), w->status_label, FALSE, FALSE, 4);
+
+    /* Filler to push footer to bottom */
+    GtkWidget *filler = gtk_label_new("");
+    gtk_widget_set_vexpand(filler, TRUE);
+    gtk_box_pack_start(GTK_BOX(vbox), filler, TRUE, TRUE, 0);
+
+    /* Footer pinned to bottom */
+    GtkWidget *footer_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
+    gtk_widget_set_halign(footer_box, GTK_ALIGN_CENTER);
+    gtk_widget_set_margin_bottom(footer_box, 10);
     GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#444444\" size=\"medium\" underline=\"none\">github.com/Deadboy666/h3adcr-b</span></a>");
     gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
     gtk_label_set_track_visited_links(GTK_LABEL(footer), FALSE);
     gtk_widget_set_name(footer, "footer");
-    gtk_box_pack_start(GTK_BOX(content), footer, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(footer_box), footer, FALSE, FALSE, 0);
+    gtk_box_pack_start(GTK_BOX(vbox), footer_box, FALSE, FALSE, 0);
 
     gtk_widget_show_all(w->window);
     gtk_main();
