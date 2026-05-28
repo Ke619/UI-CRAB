@@ -139,7 +139,7 @@ static const char *CSS_DARK =
     "#status_done { color: #228822; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
     "#status_error { color: #ff3300; font-size: 16px; font-weight: bold; letter-spacing: 2px; }"
     "#log { background-color: #000000; color: #cc2200; font-family: monospace; font-size: 12px; }"
-    "#log text { background-color: #000000; }"
+    "#log text { background-color: #000000; color: #cc2200; }"
     "scrolledwindow { }"
     "#note { color: #aaaaaa; font-size: 10px; font-style: italic; }"
     "#footer { color: #aaaaaa; font-size: 10px; }"
