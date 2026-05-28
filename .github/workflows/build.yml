@@ -26,6 +26,8 @@ jobs:
           chmod +x AppDir/AppRun
           cp headcrab_blue.png AppDir/usr/bin/headcrab_blue.png
           cp BGM.wav AppDir/usr/bin/BGM.wav
+          cp Click.mp3 AppDir/usr/bin/Click.mp3
+          cp Hover.mp3 AppDir/usr/bin/Hover.mp3
 
       - name: Download appimagetool
         run: |
