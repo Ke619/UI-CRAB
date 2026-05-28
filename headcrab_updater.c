@@ -21,6 +21,8 @@ typedef struct {
     GtkWidget *status_label;
     GtkCssProvider *css_provider;
     GtkWidget *outer_frame;
+    GtkWidget *footer_red;
+    GtkWidget *footer_blue;
     int current_theme; /* 0 = red, 1 = blue */
     char icon_path_red[512];
     char icon_path_blue[512];
@@ -201,6 +203,15 @@ static void apply_theme(AppWidgets *w) {
     const char *logo_path = (w->current_theme == 0) ? w->icon_path_red : w->icon_path_blue;
     GdkPixbuf *pb = gdk_pixbuf_new_from_file_at_scale(logo_path, 110, 110, TRUE, NULL);
     if (pb) gtk_image_set_from_pixbuf(GTK_IMAGE(w->logo_image), pb);
+    if (w->footer_red && w->footer_blue) {
+        if (w->current_theme == 0) {
+            gtk_widget_show(w->footer_red);
+            gtk_widget_hide(w->footer_blue);
+        } else {
+            gtk_widget_hide(w->footer_red);
+            gtk_widget_show(w->footer_blue);
+        }
+    }
 }
 
 static gboolean on_logo_clicked(GtkWidget *widget, GdkEventButton *event, gpointer data) {
@@ -443,14 +454,35 @@ int main(int argc, char *argv[]) {
     GtkWidget *footer_box = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0);
     gtk_widget_set_halign(footer_box, GTK_ALIGN_CENTER);
     gtk_widget_set_margin_bottom(footer_box, 10);
-    GtkWidget *footer = gtk_label_new("<a href=\"https://github.com/Deadboy666/h3adcr-b\"><span foreground=\"#aaaaaa\" size=\"medium\" underline=\"none\">h3adcr-b</span></a> ❖ <a href=\"https://github.com/Ke619/UI-CRAB\"><span foreground=\"#aaaaaa\" size=\"medium\" underline=\"none\">UI-CRAB</span></a>");
-    gtk_label_set_use_markup(GTK_LABEL(footer), TRUE);
-    gtk_label_set_track_visited_links(GTK_LABEL(footer), FALSE);
-    gtk_widget_set_name(footer, "footer");
-    gtk_box_pack_start(GTK_BOX(footer_box), footer, FALSE, FALSE, 0);
+
+    w->footer_red = gtk_label_new(
+        "<a href='https://github.com/Deadboy666/h3adcr-b'>"
+        "<span foreground='#aaaaaa' size='medium' underline='none'>h3adcr-b</span></a>"
+        " ❖ "
+        "<a href='https://github.com/Ke619/UI-CRAB'>"
+        "<span foreground='#aaaaaa' size='medium' underline='none'>UI-CRAB</span></a>");
+    gtk_label_set_use_markup(GTK_LABEL(w->footer_red), TRUE);
+    gtk_label_set_track_visited_links(GTK_LABEL(w->footer_red), FALSE);
+    gtk_widget_set_name(w->footer_red, "footer");
+    gtk_box_pack_start(GTK_BOX(footer_box), w->footer_red, FALSE, FALSE, 0);
+
+    w->footer_blue = gtk_label_new(
+        "<a href='https://github.com/Deadboy666/h3adcr-b'>"
+        "<span foreground='#444444' size='medium' underline='none'>h3adcr-b</span></a>"
+        " ❖ "
+        "<a href='https://github.com/Ke619/UI-CRAB'>"
+        "<span foreground='#444444' size='medium' underline='none'>UI-CRAB</span></a>");
+    gtk_label_set_use_markup(GTK_LABEL(w->footer_blue), TRUE);
+    gtk_label_set_track_visited_links(GTK_LABEL(w->footer_blue), FALSE);
+    gtk_widget_set_name(w->footer_blue, "footer");
+    gtk_box_pack_start(GTK_BOX(footer_box), w->footer_blue, FALSE, FALSE, 0);
+
+    /* Hide blue footer initially since we start on red theme */
+    gtk_widget_set_no_show_all(w->footer_blue, TRUE);
+
     gtk_box_pack_start(GTK_BOX(vbox), footer_box, FALSE, FALSE, 0);
 
-    gtk_widget_show_all(w->window);
+        gtk_widget_show_all(w->window);
     gtk_main();
 
     g_free(w);
