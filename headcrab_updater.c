@@ -477,8 +477,12 @@ int main(int argc, char *argv[]) {
     gtk_widget_set_name(w->footer_blue, "footer");
     gtk_box_pack_start(GTK_BOX(footer_box), w->footer_blue, FALSE, FALSE, 0);
 
-    /* Hide blue footer initially since we start on red theme */
-    gtk_widget_set_no_show_all(w->footer_blue, TRUE);
+    /* Hide the correct footer based on saved theme */
+    if (w->current_theme == 1) {
+        gtk_widget_set_no_show_all(w->footer_red, TRUE);
+    } else {
+        gtk_widget_set_no_show_all(w->footer_blue, TRUE);
+    }
 
     gtk_box_pack_start(GTK_BOX(vbox), footer_box, FALSE, FALSE, 0);
 
