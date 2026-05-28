@@ -34,7 +34,6 @@ Hold the logo for 3 seconds to toggle the background music on or off. The music 
   ________________________________________________________________
   
   Based on : https://github.com/Deadboy666/h3adcr-b
-  
   ________________________________________________________________
 </div>
 
