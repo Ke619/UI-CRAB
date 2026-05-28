@@ -158,7 +158,9 @@ static gboolean on_music_bus(GstBus *bus, GstMessage *msg, gpointer data) {
 
 static void play_sfx(GstElement *sfx) {
     if (!sfx) return;
-    gst_element_set_state(sfx, GST_STATE_NULL);
+    /* Seek to start for instant replay with no delay */
+    gst_element_seek_simple(sfx, GST_FORMAT_TIME,
+        GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT, 0);
     gst_element_set_state(sfx, GST_STATE_PLAYING);
 }
 
@@ -461,10 +463,16 @@ int main(int argc, char *argv[]) {
     snprintf(hover_uri, sizeof(hover_uri), "file://%s/Hover.mp3", dir);
 
     w->sfx_click = gst_element_factory_make("playbin", "sfx_click");
-    if (w->sfx_click) g_object_set(w->sfx_click, "uri", click_uri, NULL);
+    if (w->sfx_click) {
+        g_object_set(w->sfx_click, "uri", click_uri, NULL);
+        gst_element_set_state(w->sfx_click, GST_STATE_PAUSED);
+    }
 
     w->sfx_hover = gst_element_factory_make("playbin", "sfx_hover");
-    if (w->sfx_hover) g_object_set(w->sfx_hover, "uri", hover_uri, NULL);
+    if (w->sfx_hover) {
+        g_object_set(w->sfx_hover, "uri", hover_uri, NULL);
+        gst_element_set_state(w->sfx_hover, GST_STATE_PAUSED);
+    }
     g_free(dir);
 
     w->css_provider = gtk_css_provider_new();
