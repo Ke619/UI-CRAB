@@ -9,8 +9,8 @@
 <br>
 <div align="center">
   A one-click GUI launcher for SteamDeck that fetches and applies the latest Headcrab patch from GitHub.
- ________________________________________________________________
 </div>
+---
 
 
 <br><br>
