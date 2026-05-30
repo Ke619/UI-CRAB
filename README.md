@@ -23,6 +23,8 @@ Head to the [Releases](https://github.com/Ke619/UI-CRAB/releases/latest) page an
   <img src="Demo.png" width="400"/>
 </div>
 
+---
+
 ## Hidden Functionalities:
 
 ### Background Music:
